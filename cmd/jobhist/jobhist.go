@@ -122,7 +122,7 @@ var (
 	searchArbQuery  = kingpin.Flag("query", "Arbitrary query WHERE clause to include.").Short('Q').PlaceHolder("<query>").Hidden().Default("").String()
 	showInfoEls     = kingpin.Flag("list-elements", "Show list of elements that can be displayed.").Short('l').Bool()
 	infoEls         = kingpin.Flag("info", "Show selected info (CSV list).").Short('i').Default("fstime,fetime,hostname,owner,job_number,task_number,exit_status,job_name").String()
-	omitFails       = kingpin.Flat("omit-fails", "Omit jobs with a non-zero SGE failure code.").Short('f').Bool()
+	omitFails       = kingpin.Flag("omit-fails", "Omit jobs with a non-zero SGE failure code.").Short('f').Bool()
 	// TODO: implement timeout
 	//timeoutSeconds  = kingpin.Flag("timeout", "Seconds to wait for database response.").Short('t').Default("3").Int()
 	commitLabel string
@@ -243,7 +243,11 @@ func main() {
 		}
 
 		// Check for username validity
-		safeUser := strings.Map(dropUnsafeChars, *searchUser)
+		lowercaseUser := strings.ToLower(*searchUser)
+		if lowercaseUser != *searchUser {
+			log.Print("Warning: username contained uppercase characters -- converted to lowercase")
+		}
+		safeUser := strings.Map(dropUnsafeChars, lowercaseUser)
 		if (utf8.RuneCountInString(*searchUser) > 7) ||
 			(len(safeUser) < len(*searchUser)) {
 			log.Fatal("Error: Invalid username.")
