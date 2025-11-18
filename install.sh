@@ -11,7 +11,7 @@ function check_for_go () {
         echo "No go compiler found, trying a module setup..." >&2
         source /etc/profile.d/modules.sh
         module purge
-        module load compilers/go/1.20.6
+        module load compilers/go
     else
         echo "Could not get a go compiler, exiting..." >&2
         exit 1
