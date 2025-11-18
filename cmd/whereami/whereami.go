@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/UCL-RITS/go-clustertools/internal/clusters"
+	"github.com/UCL-ARC/go-clustertools/internal/clusters"
 	"os"
 )
 

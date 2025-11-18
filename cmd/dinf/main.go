@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/UCL-RITS/go-clustertools/internal/adhelper"
+	"github.com/UCL-ARC/go-clustertools/internal/adhelper"
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-ldap/ldap/v3"
 )

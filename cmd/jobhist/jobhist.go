@@ -9,7 +9,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/UCL-RITS/go-clustertools/internal/clusters"
+	"github.com/UCL-ARC/go-clustertools/internal/clusters"
 	"github.com/alecthomas/kingpin/v2"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/olekukonko/tablewriter"
