@@ -2,7 +2,8 @@ package clusters
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
+	"regexp"
 	"strings"
 )
 
@@ -22,10 +23,11 @@ var clusterAccountingDBs = map[string]string{
 }
 
 // We used to use regexes to work out which cluster the current hostname was from,
-//  but since the namespace collapse of Legion from login{05..09} to login{01..02},
-//  hostname can no longer be reliably used to find cluster name.
+//
+//	but since the namespace collapse of Legion from login{05..09} to login{01..02},
+//	hostname can no longer be reliably used to find cluster name.
 func GetClusterNameFromSGEIdent() (string, error) {
-	clusterNameBytes, err := ioutil.ReadFile("/opt/sge/default/common/cluster_name")
+	clusterNameBytes, err := os.ReadFile("/opt/sge/default/common/cluster_name")
 	if err != nil {
 		return "", errors.New("could not get cluster name: " + err.Error())
 	}
@@ -36,9 +38,35 @@ func GetClusterNameFromSGEIdent() (string, error) {
 	return clusterName, nil
 }
 
+// SGE ident used to be good enough to get cluster name, but now we have
+//
+//	Slurm clusters as well, with the *same name*, so we need a better source
+func GetClusterNameFromResolvConf() (string, error) {
+	resolvBytes, err := os.ReadFile("/etc/resolv.conf")
+	if err != nil {
+		return "", errors.New("could not get cluster name from DNS resolver config: " + err.Error())
+	}
+
+	// Could remove the ucl.ac.uk requirement here and make it work locally?
+	// Also, in theory you can give the search directive multiple domains
+	//  but we never do so hopefully it's fine
+	reClusterName := regexp.MustCompile(`(?m)^[ \t]*search[ \t]+([a-z0-9A-Z.-]+)\.ucl\.ac\.uk\.?[ \t]*$`)
+
+	submatches := reClusterName.FindAllSubmatch(resolvBytes, -1)
+
+	if submatches == nil {
+		return "", errors.New("could not find cluster name in DNS resolver config")
+	}
+
+	// Only the last search directive in the config is used (per the man page)
+	lastMatchIndex := len(submatches) - 1
+
+	return string(submatches[lastMatchIndex][1]), nil
+}
+
 // Wrapper function so that caller does not need to know what method is used.
 func GetLocalClusterName() (string, error) {
-	clusterName, err := GetClusterNameFromSGEIdent()
+	clusterName, err := GetClusterNameFromResolvConf()
 	if err != nil {
 		return "", err
 	}
